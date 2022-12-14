@@ -13,6 +13,10 @@ yarn install
 # npm
 npm install
 
+if you get dependency error, use
+
+npm install --legacy-peer-deps
+
 # pnpm
 pnpm install --shamefully-hoist
 ```
