@@ -56,7 +56,9 @@
                   </tbody>
                 </table>
                 <template v-if="show">
-                  <h4 class="mt-5">Card Details (paying {{selected_installment.amount}} €)</h4>
+                  <h4 class="mt-5">
+                    Card Details (paying {{ selected_installment.amount }} €)
+                  </h4>
                   <div class="row">
                     <div class="col-md-6">
                       <div class="form-outline mb-2">
@@ -103,12 +105,12 @@
                   </div>
                   <div class="row mt-2">
                     <div class="col-md-12">
-                        <button class="btn btn-danger" @click="hide">
-                            Cancel
-                        </button>
-                        <button class="btn btn-success float-end">
-                            Save
-                        </button>
+                      <button class="btn btn-danger" @click="hide">
+                        Cancel
+                      </button>
+                      <button @click="submit" class="btn btn-success float-end">
+                        Pay
+                      </button>
                     </div>
                   </div>
                 </template>
@@ -124,6 +126,7 @@
 
 <script>
 import { useTokenStore } from "@/stores/token";
+import axios from "axios";
 
 export default {
   async setup() {
@@ -155,7 +158,7 @@ export default {
       exp_month: "",
       exp_year: "",
       show: false,
-      selected_installment: {}
+      selected_installment: {},
     };
   },
   methods: {
@@ -164,8 +167,38 @@ export default {
       this.selected_installment = installment;
     },
     hide() {
-        this.show = false;
-    }
+      this.show = false;
+    },
+    async submit() {
+      const runtimeConfig = useRuntimeConfig();
+      const tokenStore = useTokenStore();
+
+      const apiUrl =
+        runtimeConfig.public.baseUrl + "api/v1/installments/payment";
+      const paymentData = {
+        id: this.selected_installment.id,
+        card_number: this.card_number,
+        cvc: this.cvc,
+        exp_month: this.exp_month,
+        exp_year: this.exp_year,
+      };
+      const config = {
+        headers: { Authorization: `Bearer ${tokenStore.token}` },
+      };
+      console.log(paymentData);
+      await axios
+        .post(apiUrl, paymentData, config)
+        .then(async (response) => {
+          console.log(response.data);
+          if (response.data.status) {
+            alert("Payment made");
+            await this.$router.push("/customers");
+          }
+          else {
+            console.log(response.data);
+          }
+        });
+    },
   },
 };
 </script>
