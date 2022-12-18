@@ -55,64 +55,74 @@
                     </template>
                   </tbody>
                 </table>
-                <template v-if="show">
-                  <h4 class="mt-5">
-                    Card Details (paying {{ selected_installment.amount }} €)
-                  </h4>
-                  <div class="row">
-                    <div class="col-md-6">
-                      <div class="form-outline mb-2">
-                        <label class="form-label">Card Number</label>
-                        <input
-                          v-model="card_number"
-                          type="text"
-                          class="form-control"
-                        />
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-outline mb-2">
-                        <label class="form-label">CVC</label>
-                        <input
-                          v-model="cvc"
-                          type="email"
-                          class="form-control"
-                        />
-                      </div>
-                    </div>
+                <template v-if="loader">
+                  <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
                   </div>
-                  <div class="row">
-                    <div class="col-md-6">
-                      <div class="form-outline mb-2">
-                        <label class="form-label">Expiry Month</label>
-                        <input
-                          v-model="exp_month"
-                          type="text"
-                          class="form-control"
-                        />
+                </template>
+                <template v-else>
+                  <template v-if="show">
+                    <h4 class="mt-5">
+                      Card Details (paying {{ selected_installment.amount }} €)
+                    </h4>
+                    <div class="row">
+                      <div class="col-md-6">
+                        <div class="form-outline mb-2">
+                          <label class="form-label">Card Number</label>
+                          <input
+                            v-model="card_number"
+                            type="text"
+                            class="form-control"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-outline mb-2">
+                          <label class="form-label">CVC</label>
+                          <input
+                            v-model="cvc"
+                            type="email"
+                            class="form-control"
+                          />
+                        </div>
                       </div>
                     </div>
-                    <div class="col-md-6">
-                      <div class="form-outline mb-2">
-                        <label class="form-label">Expiry Year</label>
-                        <input
-                          v-model="exp_year"
-                          type="text"
-                          class="form-control"
-                        />
+                    <div class="row">
+                      <div class="col-md-6">
+                        <div class="form-outline mb-2">
+                          <label class="form-label">Expiry Month</label>
+                          <input
+                            v-model="exp_month"
+                            type="text"
+                            class="form-control"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-outline mb-2">
+                          <label class="form-label">Expiry Year</label>
+                          <input
+                            v-model="exp_year"
+                            type="text"
+                            class="form-control"
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div class="row mt-2">
-                    <div class="col-md-12">
-                      <button class="btn btn-danger" @click="hide">
-                        Cancel
-                      </button>
-                      <button @click="submit" class="btn btn-success float-end">
-                        Pay
-                      </button>
+                    <div class="row mt-2">
+                      <div class="col-md-12">
+                        <button class="btn btn-danger" @click="hide">
+                          Cancel
+                        </button>
+                        <button
+                          @click="submit"
+                          class="btn btn-success float-end"
+                        >
+                          Pay
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  </template>
                 </template>
               </div>
             </div>
@@ -157,8 +167,9 @@ export default {
       cvc: "",
       exp_month: "",
       exp_year: "",
-      show: false,
       selected_installment: {},
+      show: false,
+      loader: false,
     };
   },
   methods: {
@@ -170,6 +181,8 @@ export default {
       this.show = false;
     },
     async submit() {
+
+      this.loader = true;
       const runtimeConfig = useRuntimeConfig();
       const tokenStore = useTokenStore();
 
@@ -186,18 +199,17 @@ export default {
         headers: { Authorization: `Bearer ${tokenStore.token}` },
       };
       console.log(paymentData);
-      await axios
-        .post(apiUrl, paymentData, config)
-        .then(async (response) => {
+      await axios.post(apiUrl, paymentData, config).then(async (response) => {
+        console.log(response.data);
+        this.loader = false;
+        if (response.data.status) {
+          alert("Payment made");
+          
+          await this.$router.push("/customers");
+        } else {
           console.log(response.data);
-          if (response.data.status) {
-            alert("Payment made");
-            await this.$router.push("/customers");
-          }
-          else {
-            console.log(response.data);
-          }
-        });
+        }
+      });
     },
   },
 };

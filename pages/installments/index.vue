@@ -35,17 +35,30 @@
               <td>{{ installment.status }}</td>
               <td>{{ installment.expire_date }}</td>
               <td>
-                <button class="btn btn-success me-2">
-                  <Icon name="ic:baseline-credit-card" />
-                  PAY
-                </button>
+                <template v-if="installment.status == 0">
+                  <button
+                    class="btn btn-success me-2"
+                    @click="
+                      $router.push(`/customers/payInstallments/${installment.customer.id}`)
+                    "
+                  >
+                    <Icon name="ic:baseline-credit-card" />
+                    PAY
+                  </button>
+                </template>
+                <template v-else>
+                  <button class="btn btn-success me-2" disabled>
+                    <Icon name="ic:baseline-credit-card" />
+                    PAID
+                  </button>
+                </template>
+
                 <button class="btn btn-outline-secondary me-2">
-                    <Icon name="ic:baseline-edit"/>
+                  <Icon name="ic:baseline-edit" />
                 </button>
                 <button class="btn btn-outline-danger">
-                    <Icon name="ic:baseline-delete"/>
+                  <Icon name="ic:baseline-delete" />
                 </button>
-                
               </td>
             </tr>
           </template>
@@ -55,25 +68,32 @@
   </div>
 </template>
 
-<script setup>
+<script>
 import { useTokenStore } from "@/stores/token";
 
-const runtimeConfig = useRuntimeConfig();
-const tokenStore = useTokenStore();
+export default {
+  async setup() {
+    const runtimeConfig = useRuntimeConfig();
+    const tokenStore = useTokenStore();
 
-const {
-  data: response,
-  error,
-  refresh,
-  pending,
-} = await useFetch(`api/v1/installments/index`, {
-  headers: {
-    Authorization: `Bearer ${tokenStore.token}`,
+    const {
+      data: response,
+      error,
+      refresh,
+      pending,
+    } = await useFetch(`api/v1/installments/index`, {
+      headers: {
+        Authorization: `Bearer ${tokenStore.token}`,
+      },
+      baseURL: runtimeConfig.public.baseUrl,
+    });
+
+    const installments = response._rawValue.data;
+
+    return { installments: installments };
   },
-  baseURL: runtimeConfig.public.baseUrl,
-});
-
-const installments = response._rawValue.data;
+  name: "installmentsList",
+};
 </script>
 
 <style lang="scss" scoped></style>

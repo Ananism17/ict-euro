@@ -28,11 +28,16 @@
                 v-for="(installment, index) in customer.installments"
                 :key="index"
               >
-                {{ installment.amount }}€
+                <template v-if="installment.status == 0">
+                  <span class="text-danger amount">{{ installment.amount }}€ </span>
+                </template>
+                <template v-else>
+                  <span class="text-success amount">{{ installment.amount }}€ </span>
+                </template>
               </span>
             </td>
             <td v-else>
-              <span> No Installments </span>
+              <span class="amount"> No Installments </span>
             </td>
 
             <td>{{ customer.installments.length }}</td>
@@ -47,11 +52,7 @@
                 <Icon name="ic:baseline-credit-card" />
                 PAY
               </button>
-              <button
-                v-else
-                class="btn btn-success me-2"
-                disabled
-              >
+              <button v-else class="btn btn-success me-2" disabled>
                 <Icon name="ic:baseline-credit-card" />
                 PAY
               </button>
@@ -100,4 +101,8 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+.amount {
+  font-weight: 500;
+}
+</style>
